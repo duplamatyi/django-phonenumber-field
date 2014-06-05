@@ -5,8 +5,6 @@ from django.utils.translation import ugettext_lazy as _
 from phonenumber_field.validators import validate_international_phonenumber
 from phonenumber_field import formfields
 from phonenumber_field.phonenumber import PhoneNumber, to_python
-from phonenumbers.phonenumberutil import NumberParseException
-import phonenumbers
 
 
 class PhoneNumberDescriptor(object):
@@ -64,7 +62,7 @@ class PhoneNumberField(models.Field):
         if isinstance(value, basestring):
             # it is an invalid phone number
             return value
-        return value.as_e164
+        return value.as_international
 
     def contribute_to_class(self, cls, name):
         super(PhoneNumberField, self).contribute_to_class(cls, name)

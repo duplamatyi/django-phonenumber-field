@@ -22,6 +22,7 @@ class PhoneNumber(phonenumbers.phonenumber.PhoneNumber):
         phone_number_obj = cls()
         if region is None:
             region = getattr(settings, 'PHONENUMBER_DEFAULT_REGION', None) or getattr(settings, 'PHONENUMER_DEFAULT_REGION', None)
+
         phonenumbers.parse(number=phone_number, region=region,
                            keep_raw_input=True, numobj=phone_number_obj)
         return phone_number_obj
@@ -66,18 +67,23 @@ class PhoneNumber(phonenumbers.phonenumber.PhoneNumber):
 
     def __eq__(self, other):
         if type(other) == PhoneNumber:
-            return self.as_e164 == other.as_e164
+            return self.as_international == other.as_international
         else:
             return super(PhoneNumber, self).__eq__(other)
 
 
 def to_python(value):
-    if value in validators.EMPTY_VALUES:  # None or ''
+    if value in validators.EMPTY_VALUES: # None or ''
         phone_number = None
     elif value and isinstance(value, basestring):
         try:
+            value_parts = value.split('.')
+            if len(value_parts) == 3:
+                value_parts[2] = 'x%s' % value_parts[2]
+
+            value = '.'.join(value_parts)
             phone_number = PhoneNumber.from_string(phone_number=value)
-        except NumberParseException, e:
+        except NumberParseException:
             # the string provided is not a valid PhoneNumber.
             phone_number = PhoneNumber(raw_input=value)
     elif isinstance(value, phonenumbers.phonenumber.PhoneNumber) and \
@@ -87,6 +93,6 @@ def to_python(value):
         phone_number = value
     else:
         # TODO: this should somehow show that it has invalid data, but not completely die for
-        #       bad data in the database. (Same for the NumberParseException above)
+        # bad data in the database. (Same for the NumberParseException above)
         phone_number = None
     return phone_number
