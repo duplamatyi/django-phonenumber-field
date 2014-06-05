@@ -31,13 +31,15 @@ class PhonePrefixSelect(Select):
     def render(self, name, value, *args, **kwargs):
         return super(PhonePrefixSelect, self).render(name, value or self.initial, *args, **kwargs)
 
+
 class PhoneNumberPrefixWidget(MultiWidget):
     """
     A Widget that splits phone number input into:
     - a country select box for phone prefix
     - an input for local phone number
     """
-    def __init__(self, attrs=None, initial=None):
+    def __init__(self, attrs=None, initial=None, widget_css_classes=None):
+        self.widget_css_classes = widget_css_classes
         widgets = (PhonePrefixSelect(initial, ), TextInput(), TextInput(),)
         super(PhoneNumberPrefixWidget, self).__init__(widgets, attrs)
 
@@ -58,10 +60,12 @@ class PhoneNumberPrefixWidget(MultiWidget):
         if self.is_localized:
             for widget in self.widgets:
                 widget.is_localized = self.is_localized
+
         # value is a list of values, each corresponding to a widget
         # in self.widgets.
         if not isinstance(value, list):
             value = self.decompress(value)
+
         output = []
         final_attrs = self.build_attrs(attrs)
         id_ = final_attrs.get('id', None)
@@ -70,7 +74,17 @@ class PhoneNumberPrefixWidget(MultiWidget):
                 widget_value = value[i]
             except IndexError:
                 widget_value = None
+
             if id_:
                 final_attrs = dict(final_attrs, id='%s_%s' % (id_, i))
-            output.append('<div class="col-xs-3"> %s </div>' % (widget.render(name + '_%s' % i, widget_value, final_attrs)))
+
+            widget_css_class = "col-xs-4"
+            if self.widget_css_classes is not None:
+                widget_css_class = self.widget_css_classes[i]
+
+            output.append('<div class="%s"> %s </div>' % (
+                widget_css_class, widget.render(name + '_%s' % i, widget_value, final_attrs))
+            )
+
         return mark_safe(self.format_output(output))
+
