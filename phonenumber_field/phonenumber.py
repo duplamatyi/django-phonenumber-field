@@ -79,6 +79,9 @@ def to_python(value):
         try:
             value_parts = value.split('.')
             if len(value_parts) == 3:
+                if '' == value_parts[1]:
+                    return None
+
                 value_parts[2] = 'x%s' % value_parts[2]
 
             value = '.'.join(value_parts)
@@ -95,4 +98,5 @@ def to_python(value):
         # TODO: this should somehow show that it has invalid data, but not completely die for
         # bad data in the database. (Same for the NumberParseException above)
         phone_number = None
+
     return phone_number
